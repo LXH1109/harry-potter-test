@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-canvas-width="480" data-canvas-height="1600">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>哈利波特人格测试</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%231a1230'/%3E%3Cpath d='M20 44 Q14 32 20 20 L30 26 L32 14 L34 26 L44 20 Q50 32 44 44 Q32 52 20 44Z' fill='%23e8b64c'/%3E%3Ccircle cx='26' cy='30' r='4' fill='%231a1230'/%3E%3Ccircle cx='38' cy='30' r='4' fill='%231a1230'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Cinzel:wght@600;700;900&family=Noto+Serif+SC:wght@400;600;700;900&display=swap">
+<style>
+/* ===== 基础与色板 ===== */
+:root{
+  --ink:#19122e;
+  --night:#241740;
+  --night2:#2e1e4e;
+  --parch:#f2e4c6;
+  --parch-deep:#dcc79c;
+  --parch-line:#c3a878;
+  --gold:#e8b64c;
+  --gold-bright:#f7dd8a;
+  --gold-deep:#b07a24;
+  --ember:#c87f3d;
+  --moss:#33543f;
+  --crimson:#8c2f39;
+  --text-main:#3a2c17;
+  --text-soft:#6b5636;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Noto Serif SC","Songti SC",SimSun,serif;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #3a2a5e 0%, transparent 60%),
+    radial-gradient(900px 500px at 85% 110%, #27463a 0%, transparent 55%),
+    linear-gradient(160deg, var(--night) 0%, var(--ink) 55%, #120d20 100%);
+  color:var(--parch);
+  min-height:100vh;
+  line-height:1.7;
+  position:relative;
+  overflow-x:hidden;
+}
+/* 星空背景 */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.stars i{position:absolute;border-radius:50%;background:var(--gold-bright);opacity:.7;animation:twinkle 4s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:.85;transform:scale(1.15)}}
+.page{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh;padding:24px 20px 40px;display:flex;flex-direction:column}
+.view{display:none}
+.view.active{display:block}
+
+/* ===== 通用组件 ===== */
+.btn-magic{
+  display:inline-block;
+  font-family:inherit;
+  font-size:18px;
+  font-weight:700;
+  color:var(--ink);
+  background:linear-gradient(180deg,var(--gold-bright),var(--gold) 55%,var(--gold-deep));
+  border:2px solid #f6e2a8;
+  border-radius:999px;
+  padding:14px 42px;
+  cursor:pointer;
+  box-shadow:0 6px 0 var(--gold-deep),0 12px 24px rgba(0,0,0,.35);
+  transition:transform .12s ease,box-shadow .12s ease;
+  letter-spacing:.12em;
+}
+.btn-magic:active{transform:translateY(4px);box-shadow:0 2px 0 var(--gold-deep),0 6px 14px rgba(0,0,0,.3)}
+.btn-ghost{
+  font-family:inherit;font-size:14px;font-weight:600;
+  color:var(--gold);background:transparent;border:1px solid rgba(232,182,76,.55);
+  border-radius:999px;padding:10px 26px;cursor:pointer;letter-spacing:.08em;
+  transition:background .15s ease;
+}
+.btn-ghost:hover{background:rgba(232,182,76,.12)}
+.muted{color:rgba(242,228,198,.6);font-size:12px}
+
+/* ===== 封面 ===== */
+#cover{text-align:center;padding-top:6vh}
+.owl-wrap{position:relative;height:150px;margin-bottom:8px}
+.owl{position:absolute;left:50%;top:10px;transform:translateX(-50%);animation:float 5s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))}
+@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
+.title-block{margin:6px 0 18px}
+.kicker{font-family:"Cinzel",serif;font-size:13px;letter-spacing:.5em;color:var(--gold);text-transform:uppercase;opacity:.9;margin-bottom:10px}
+.hero-title{
+  font-family:"Cinzel","Noto Serif SC",serif;
+  font-size:52px;
+  font-weight:900;
+  line-height:1.15;
+  background:linear-gradient(180deg,#fff3cf 0%,var(--gold-bright) 30%,var(--gold) 55%,var(--gold-deep) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 2px 0 #7a5517) drop-shadow(0 5px 10px rgba(0,0,0,.55));
+  letter-spacing:.06em;
+}
+.hero-sub{margin-top:14px;font-size:16px;color:var(--parch);opacity:.92;letter-spacing:.2em}
+.hero-sub em{font-style:normal;color:var(--gold-bright)}
+.start-area{margin:40px 0 30px}
+.note-legal{margin-top:26px;opacity:.55}
+.castle{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:520px;pointer-events:none;z-index:0;opacity:.5}
+.castle svg{width:100%;display:block}
+
+/* ===== 答题 ===== */
+.quiz-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.quiz-count{font-family:"Cinzel",serif;font-size:14px;color:var(--gold);white-space:nowrap;letter-spacing:.05em}
+.progress{flex:1;height:14px;border-radius:999px;background:rgba(242,228,198,.14);border:1px solid rgba(232,182,76,.35);overflow:hidden}
+.progress-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-bright));transition:width .4s ease}
+.quiz-card{
+  background:
+    radial-gradient(220px 120px at 12% 0%, rgba(255,248,224,.55), transparent 60%),
+    linear-gradient(170deg,#f7ecd2 0%,var(--parch) 60%,#e8d6ac 100%);
+  color:var(--text-main);
+  border-radius:20px;
+  border:1px solid var(--parch-line);
+  box-shadow:0 16px 40px rgba(0,0,0,.4), inset 0 0 60px rgba(180,140,70,.18);
+  padding:26px 22px 24px;
+  position:relative;
+}
+.quiz-card::before{
+  content:"";position:absolute;inset:8px;border:1px solid rgba(176,122,36,.35);border-radius:14px;pointer-events:none;
+}
+.q-tag{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gold-deep);font-weight:700;letter-spacing:.1em;margin-bottom:12px}
+.q-tag .glyph{font-family:"Cinzel",serif;color:var(--ember)}
+.q-text{font-size:19px;font-weight:700;line-height:1.75;margin-bottom:22px;min-height:66px}
+.opts{display:flex;flex-direction:column;gap:12px}
+.opt{
+  font-family:inherit;text-align:left;font-size:15.5px;color:var(--text-main);
+  background:rgba(255,252,240,.65);
+  border:1.5px solid var(--parch-line);
+  border-radius:14px;
+  padding:13px 16px;
+  cursor:pointer;
+  transition:border-color .15s ease,background .15s ease,transform .1s ease;
+  position:relative;
+}
+.opt:hover{border-color:var(--gold-deep);background:rgba(255,250,228,.95);transform:translateX(3px)}
+.opt:active{transform:scale(.99)}
+.opt .opt-letter{
+  display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;
+  font-family:"Cinzel",serif;font-weight:700;font-size:13px;color:var(--gold-deep);
+  border:1px solid var(--gold-deep);border-radius:50%;margin-right:10px;flex:none;
+}
+.quiz-footer{text-align:center;margin-top:26px}
+
+/* ===== 结果 ===== */
+#result .result-head{text-align:center;margin-bottom:22px}
+.result-head .res-kicker{font-family:"Cinzel",serif;font-size:13px;letter-spacing:.42em;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.result-head h2{font-size:34px;font-weight:900;letter-spacing:.08em;color:var(--gold-bright);text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.char-card{
+  text-align:center;
+  background:linear-gradient(170deg,#f7ecd2,var(--parch) 65%,#e6d3a6);
+  color:var(--text-main);
+  border-radius:22px;
+  border:1px solid var(--parch-line);
+  box-shadow:0 18px 44px rgba(0,0,0,.45), inset 0 0 70px rgba(180,140,70,.16);
+  padding:26px 20px 22px;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+.char-card .gold-frame{
+  width:min(78%,260px);aspect-ratio:1/1;margin:0 auto 16px;border-radius:18px;overflow:hidden;
+  border:3px solid var(--gold);box-shadow:0 8px 0 var(--gold-deep),0 14px 26px rgba(0,0,0,.35);
+}
+.char-card .gold-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.char-name{font-size:27px;font-weight:900;color:var(--ink);letter-spacing:.06em}
+.char-title{font-size:15px;font-weight:700;color:var(--crimson);margin-top:2px;letter-spacing:.08em}
+.char-slogan{font-size:14px;color:var(--text-soft);font-style:italic;margin-top:8px}
+.sec{
+  background:rgba(36,23,64,.55);
+  border:1px solid rgba(232,182,76,.28);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:16px;
+}
+.sec h3{
+  font-size:16px;color:var(--gold-bright);letter-spacing:.18em;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec h3::before{content:"";width:14px;height:2px;background:var(--gold);flex:none}
+.sec p{font-size:14.5px;color:rgba(242,228,198,.92)}
+.tag-wall{display:flex;flex-wrap:wrap;gap:8px}
+.tag{
+  font-size:13px;color:var(--ink);background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+  border-radius:999px;padding:5px 14px;font-weight:700;letter-spacing:.05em;
+}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.duel .box{border-radius:14px;padding:14px}
+.duel .good{background:rgba(51,84,63,.5);border:1px solid rgba(150,200,160,.35)}
+.duel .bad{background:rgba(140,47,57,.42);border:1px solid rgba(220,120,120,.32)}
+.duel h4{font-size:13.5px;letter-spacing:.1em;margin-bottom:8px}
+.duel .good h4{color:#9ed4a8}
+.duel .bad h4{color:#f0a0a0}
+.duel ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.duel li{font-size:13.5px;color:rgba(242,228,198,.92);padding-left:18px;position:relative}
+.duel .good li::before{content:"✦";position:absolute;left:0;color:#9ed4a8}
+.duel .bad li::before{content:"✧";position:absolute;left:0;color:#f0a0a0}
+.path-list{display:flex;flex-direction:column;gap:12px}
+.path-item{background:rgba(242,228,198,.07);border-left:3px solid var(--gold);border-radius:10px;padding:12px 14px}
+.path-item b{color:var(--gold-bright);font-size:14.5px}
+.path-item p{font-size:13.5px;color:rgba(242,228,198,.85);margin-top:3px}
+.advice-list{display:flex;flex-direction:column;gap:10px}
+.advice-item{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:rgba(242,228,198,.92)}
+.advice-item .num{flex:none;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--gold);color:var(--ink);font-weight:900;font-size:13px;font-family:"Cinzel",serif}
+.actions{text-align:center;margin-top:24px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.result-legal{margin-top:18px;text-align:center}
+.combo-tip{
+  margin-top:14px;font-size:13.5px;color:var(--gold);border:1px dashed rgba(232,182,76,.5);
+  border-radius:12px;padding:10px 12px;background:rgba(232,182,76,.06);
+}
+
+/* ===== 桌面适配 ===== */
+@media (min-width:768px){
+  .page{max-width:620px;padding-top:32px}
+  .hero-title{font-size:64px}
+  .q-text{font-size:20px}
+  .char-card .gold-frame{width:min(70%,300px)}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .opt{min-height:64px}
+}
+@media (prefers-reduced-motion:reduce){
+  .owl,.stars i{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="stars" id="stars" aria-hidden="true"></div>
+<div class="castle" aria-hidden="true">
+  <svg viewBox="0 0 520 120" preserveAspectRatio="xMidYMax slice">
+    <path d="M0 120 L0 70 L30 70 L30 45 L60 45 L60 70 L90 70 L90 40 L120 40 L120 70 L150 70 L150 55 L180 55 L180 70 L210 70 L210 35 L240 35 L240 70 L270 70 L270 50 L300 50 L300 70 L330 70 L330 38 L360 38 L360 70 L390 70 L390 52 L420 52 L420 70 L450 70 L450 42 L480 42 L480 70 L520 70 L520 120 Z" fill="#120d20"/>
+    <path d="M20 70 L20 60 L30 60 L30 70 Z M40 70 L40 58 L50 58 L50 70 Z M60 70 L60 62 L70 62 L70 70 Z" fill="#1d1430"/>
+    <path d="M0 120 L0 105 Q40 96 80 105 T160 105 T240 105 T320 105 T400 105 T480 105 T520 105 L520 120 Z" fill="#0d0918"/>
+  </svg>
+</div>
+
+<div class="page">
+
+  <!-- ===== 视图：封面 ===== -->
+  <section id="cover" class="view active">
+    <div class="owl-wrap">
+      <svg class="owl" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+        <ellipse cx="60" cy="66" rx="36" ry="42" fill="#241740" stroke="#e8b64c" stroke-width="2.5"/>
+        <ellipse cx="60" cy="40" rx="26" ry="22" fill="#2e1e4e" stroke="#e8b64c" stroke-width="2.5"/>
+        <circle cx="47" cy="38" r="7.5" fill="#f2e4c6"/>
+        <circle cx="73" cy="38" r="7.5" fill="#f2e4c6"/>
+        <circle cx="47" cy="38" r="3.4" fill="#19122e"/>
+        <circle cx="73" cy="38" r="3.4" fill="#19122e"/>
+        <path d="M38 48 L26 42 L36 56 Z" fill="#e8b64c"/>
+        <path d="M82 48 L94 42 L84 56 Z" fill="#e8b64c"/>
+        <path d="M40 74 Q24 84 16 76 Q26 90 44 88 Q50 84 48 76 Z" fill="#241740" stroke="#e8b64c" stroke-width="2"/>
+        <path d="M80 74 Q96 84 104 76 Q94 90 76 88 Q70 84 72 76 Z" fill="#241740" stroke="#e8b64c" stroke-width="2"/>
+        <path d="M60 66 L60 76 M54 78 L60 88 L66 78 Z" fill="#e8b64c"/>
+        <ellipse cx="60" cy="80" rx="10" ry="6" fill="#f2e4c6"/>
+      </svg>
+    </div>
+    <div class="title-block">
+      <div class="kicker">Wizarding Personality</div>
+      <h1 class="hero-title">哈利波特</h1>
+      <p class="hero-sub">测出你灵魂深处的<em>魔法人格</em></p>
+    </div>
+    <div class="start-area">
+      <button class="btn-magic" onclick="location.hash='#quiz'">进入魔法测试</button>
+    </div>
+    <p class="note-legal muted">非官方粉丝向 · 仅供娱乐</p>
+  </section>
+
+  <!-- ===== 视图：答题 ===== -->
+  <section id="quiz" class="view">
+    <div class="quiz-top">
+      <span class="quiz-count" id="quizCount">1 / 50</span>
+      <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="quiz-card" id="quizCard"></div>
+    <div class="quiz-footer"><span class="muted">凭第一直觉作答，别回头改</span></div>
+  </section>
+
+  <!-- ===== 视图：结果 ===== -->
+  <section id="result" class="view">
+    <div id="resultBox"></div>
+  </section>
+
+  <!-- ===== 角色图静态源（发布链路识别，JS渲染时克隆引用） ===== -->
+  <div id="charImgs" hidden>
+    <img src="role-harry.jpg" data-key="harry" alt="哈利·波特">
+    <img src="role-hermione.jpg" data-key="hermione" alt="赫敏·格兰杰">
+    <img src="role-ron.jpg" data-key="ron" alt="罗恩·韦斯莱">
+    <img src="role-dumbledore.jpg" data-key="dumbledore" alt="邓布利多">
+    <img src="role-snape.jpg" data-key="snape" alt="斯内普">
+    <img src="role-mcgonagall.jpg" data-key="mcgonagall" alt="麦格教授">
+    <img src="role-luna.jpg" data-key="luna" alt="卢娜·洛夫古德">
+    <img src="role-sirius.jpg" data-key="sirius" alt="小天狼星">
+  </div>
+
+</div>
+
+<script>
+"use strict";
+/* ===== 数据：题目（50题，每题4选项映射8角色）===== */
+var QUESTIONS = [
+  { q:"分院帽犹豫不决，它低声问：你最渴望成为什么样的人？", opts:[
+    {t:"敢于为朋友挺身而出的人",c:"harry"},
+    {t:"什么都懂一点的人",c:"hermione"},
+    {t:"有朋友陪着就很好的人",c:"ron"},
+    {t:"能看清全局的人",c:"dumbledore"}]},
+  { q:"第一堂魔药课，教授当众刁难你，你会怎么做？", opts:[
+    {t:"小声抱怨两句，但还是照做",c:"ron"},
+    {t:"平静地看穿他的用意",c:"dumbledore"},
+    {t:"记住这笔账，以后赢回来",c:"snape"},
+    {t:"不卑不亢，按规矩完成",c:"mcgonagall"}]},
+  { q:"深夜经过禁林，忽然听到奇怪的声响，你？", opts:[
+    {t:"保持警惕，不露声色地观察",c:"snape"},
+    {t:"先报告教授，按规矩处理",c:"mcgonagall"},
+    {t:"闭上眼，听它想说什么",c:"luna"},
+    {t:"提上魔杖，直接去看个究竟",c:"sirius"}]},
+  { q:"图书馆里发现一本会骂人的魔法书，你？", opts:[
+    {t:"蹲下来跟它聊起来",c:"luna"},
+    {t:"想办法撬开书脊看看秘密",c:"sirius"},
+    {t:"护住它，别让管理员毁掉它",c:"harry"},
+    {t:"研究它为什么会骂人，写篇论文",c:"hermione"}]},
+  { q:"魁地奇院队选拔，你更想站在哪个位置？", opts:[
+    {t:"追球手，冲在最前面",c:"harry"},
+    {t:"找球手，算准金色飞贼的轨迹",c:"hermione"},
+    {t:"守门员，相对轻松点",c:"ron"},
+    {t:"队长，统筹全场节奏",c:"dumbledore"}]},
+  { q:"好朋友半夜拉你翻墙去禁林探险，你？", opts:[
+    {t:"嘴上嫌麻烦，还是跟着去了",c:"ron"},
+    {t:"劝他别去，但暗中留好后手",c:"dumbledore"},
+    {t:"不动声色跟着，盯紧每一处危险",c:"snape"},
+    {t:"先问他有没有给教授留字条",c:"mcgonagall"}]},
+  { q:"期末魔咒考试，旁边的同学偷偷抄你的答案，你？", opts:[
+    {t:"假装没看见，但记住了这件事",c:"snape"},
+    {t:"举手报告，考场纪律不容破坏",c:"mcgonagall"},
+    {t:"无所谓，考试本来就不重要",c:"luna"},
+    {t:"抄呗，兄弟有难同当",c:"sirius"}]},
+  { q:"霍格沃茨大战前夜，你选择守在哪里？", opts:[
+    {t:"相信直觉，去守最安静的桥",c:"luna"},
+    {t:"冲在第一线，挡在最前面",c:"sirius"},
+    {t:"守在弱小同学身边，挡下致命一击",c:"harry"},
+    {t:"连夜分析敌方布防，制定战术",c:"hermione"}]},
+  { q:"朋友被冤枉偷了东西，你的第一反应是？", opts:[
+    {t:"站出来替他作证",c:"harry"},
+    {t:"收集证据，证明他的清白",c:"hermione"},
+    {t:"陪他散心，一起骂骂咧咧",c:"ron"},
+    {t:"相信他，并暗中帮他布局翻盘",c:"dumbledore"}]},
+  { q:"你发现自己有变成动物的天赋，最想学哪种？", opts:[
+    {t:"学个轻松可爱的就行",c:"ron"},
+    {t:"学最复杂的那种，挑战自己",c:"dumbledore"},
+    {t:"偷偷学，不让任何人知道",c:"snape"},
+    {t:"先查清楚校规允不允许",c:"mcgonagall"}]},
+  { q:"霍格莫德村新开了一家魔法糖果店，你会？", opts:[
+    {t:"先研究每种糖果的成分配方",c:"snape"},
+    {t:"试吃后给出理性的评价",c:"mcgonagall"},
+    {t:"尝尝那款会唱歌的糖",c:"luna"},
+    {t:"把每种都买来，分给大家",c:"sirius"}]},
+  { q:"你当选了学生会主席，上任第一件事是？", opts:[
+    {t:"给每个新生写一封欢迎信",c:"luna"},
+    {t:"改革校规里那些老规矩",c:"sirius"},
+    {t:"组建互助小组，照顾落单的人",c:"harry"},
+    {t:"建立学习资料共享库",c:"hermione"}]},
+  { q:"黑魔法防御课教了一个危险的咒语，你？", opts:[
+    {t:"认真学，关键时刻要用得上",c:"harry"},
+    {t:"先查清它全部的后果再说",c:"hermione"},
+    {t:"学了一半就开始走神",c:"ron"},
+    {t:"听出老师没讲全的漏洞",c:"dumbledore"}]},
+  { q:"复活节彩蛋里跳出一只会说话的巧克力蛙，你？", opts:[
+    {t:"先吃掉再说，管它会说话",c:"ron"},
+    {t:"问问它家族三代的故事",c:"dumbledore"},
+    {t:"研究它为什么会说话",c:"snape"},
+    {t:"按校规没收，上报教授",c:"mcgonagall"}]},
+  { q:"你觉得自己的守护神会是什么？", opts:[
+    {t:"一条盘踞的黑蛇",c:"snape"},
+    {t:"一只严肃的虎斑猫",c:"mcgonagall"},
+    {t:"一只不存在的生物",c:"luna"},
+    {t:"一只巨大的黑犬",c:"sirius"}]},
+  { q:"如果穿越回学生时代，你最想做什么？", opts:[
+    {t:"把禁林每一寸都逛遍",c:"luna"},
+    {t:"拉上朋友，把恶作剧玩到极致",c:"sirius"},
+    {t:"早点和朋友们并肩作战",c:"harry"},
+    {t:"把图书馆的书全部读完",c:"hermione"}]},
+  { q:"朋友失恋了，在礼堂里大哭，你？", opts:[
+    {t:"冲过去陪着她，一起骂渣男",c:"harry"},
+    {t:"帮她分析这段关系为什么结束",c:"hermione"},
+    {t:"手足无措，默默递上一袋零食",c:"ron"},
+    {t:"告诉她：时间会治愈一切",c:"dumbledore"}]},
+  { q:"魔法部突然通知要调查你，你？", opts:[
+    {t:"立刻找朋友商量怎么办",c:"ron"},
+    {t:"早就料到会有这天，从容应对",c:"dumbledore"},
+    {t:"保持沉默，先观察他们的底牌",c:"snape"},
+    {t:"积极配合，如实交代所有细节",c:"mcgonagall"}]},
+  { q:"没有课的周末，你更愿意怎么过？", opts:[
+    {t:"一个人研究新魔药配方",c:"snape"},
+    {t:"批改学生作业，认真写评语",c:"mcgonagall"},
+    {t:"去林子里找神奇生物聊天",c:"luna"},
+    {t:"骑上扫帚，兜风一整天",c:"sirius"}]},
+  { q:"朋友问你对规则怎么看，你的回答是？", opts:[
+    {t:"规则是人为的，可以商量",c:"luna"},
+    {t:"规则就是用来打破的",c:"sirius"},
+    {t:"规则不公平时，就该站出来",c:"harry"},
+    {t:"规则合理时，就该认真遵守",c:"hermione"}]},
+  { q:"毕业舞会当晚，你会？", opts:[
+    {t:"被朋友们推上舞池第一个跳",c:"harry"},
+    {t:"认真准备舞步和礼服",c:"hermione"},
+    {t:"躲在角落专心吃蛋糕",c:"ron"},
+    {t:"当主持人，把控全场节奏",c:"dumbledore"}]},
+  { q:"朋友把一个危险的秘密托付给你保管，你？", opts:[
+    {t:"憋得难受，但还是忍住了",c:"ron"},
+    {t:"守口如瓶，并暗中布局保护他",c:"dumbledore"},
+    {t:"假装不知情，但暗暗盯着周围",c:"snape"},
+    {t:"直接告诉他：这不合校规",c:"mcgonagall"}]},
+  { q:"如果明天就是世界末日，你今晚会？", opts:[
+    {t:"把一直没说出口的话都写下来",c:"snape"},
+    {t:"把该做的事一件件做完",c:"mcgonagall"},
+    {t:"去天文塔，安静地看星星",c:"luna"},
+    {t:"和朋友们聚在一起喝到天亮",c:"sirius"}]},
+  { q:"魔法世界里，你最想掌握哪个咒语？", opts:[
+    {t:"飞来咒，召唤各种奇怪的东西",c:"luna"},
+    {t:"阿尼玛格斯，随时变身",c:"sirius"},
+    {t:"呼神护卫，召唤自己的守护神",c:"harry"},
+    {t:"时间转换器，把一天过成两天",c:"hermione"}]},
+  { q:"你被分进了最不想去的学院，你？", opts:[
+    {t:"用行动证明自己属于这里",c:"harry"},
+    {t:"研究这个学院隐藏的优点",c:"hermione"},
+    {t:"找朋友吐槽一整晚",c:"ron"},
+    {t:"从内部慢慢改变它",c:"dumbledore"}]},
+  { q:"走廊里飘满了游荡的幽灵，你？", opts:[
+    {t:"绕路走，但忍不住回头看",c:"ron"},
+    {t:"拦住一只，聊聊它的生前故事",c:"dumbledore"},
+    {t:"研究幽灵背后的魔法原理",c:"snape"},
+    {t:"组织巡逻队，维持走廊秩序",c:"mcgonagall"}]},
+  { q:"如果可以选择一种超能力，你想要？", opts:[
+    {t:"读心术，好掌握人心",c:"snape"},
+    {t:"分身术，同时处理所有事",c:"mcgonagall"},
+    {t:"听懂动物说话",c:"luna"},
+    {t:"瞬移，想去哪就去哪",c:"sirius"}]},
+  { q:"面对一件未知的魔法物品，你的第一反应？", opts:[
+    {t:"先碰碰看，它是什么再说",c:"luna"},
+    {t:"直接打开看看",c:"sirius"},
+    {t:"护在身后，怕它伤到别人",c:"harry"},
+    {t:"拿放大镜研究它的说明书",c:"hermione"}]},
+  { q:"朋友和你喜欢上同一个人，你？", opts:[
+    {t:"公平竞争，光明正大",c:"harry"},
+    {t:"理性分析，谁更适合他",c:"hermione"},
+    {t:"默默退出，成全朋友",c:"ron"},
+    {t:"相信时间会给出答案",c:"dumbledore"}]},
+  { q:"你发现老师在偷偷做危险的实验，你？", opts:[
+    {t:"悄悄告诉最信任的朋友",c:"ron"},
+    {t:"先不动声色，把来龙去脉查清楚",c:"dumbledore"},
+    {t:"记下来，等有机会再翻盘",c:"snape"},
+    {t:"当面质问老师",c:"mcgonagall"}]},
+  { q:"你收到一封没有署名的信，你？", opts:[
+    {t:"用魔药检验信纸的成分",c:"snape"},
+    {t:"拆开前先检查有没有诅咒",c:"mcgonagall"},
+    {t:"闭上眼，感觉写信人的情绪",c:"luna"},
+    {t:"直接拆开，怕什么",c:"sirius"}]},
+  { q:"深夜城堡传来一阵琴声，你？", opts:[
+    {t:"跟着旋律轻轻哼起来",c:"luna"},
+    {t:"循声找到演奏者，一起玩",c:"sirius"},
+    {t:"担心是不是求救信号",c:"harry"},
+    {t:"定位声源，分析是谁在弹",c:"hermione"}]},
+  { q:"在禁林里迷路了，你？", opts:[
+    {t:"靠直觉往前走",c:"harry"},
+    {t:"沿途用魔法标记路线",c:"hermione"},
+    {t:"原地坐下，等朋友来找我",c:"ron"},
+    {t:"抬头观察星象辨方向",c:"dumbledore"}]},
+  { q:"你捡到一面能照出最深层渴望的镜子，你？", opts:[
+    {t:"对着它照了三天三夜",c:"ron"},
+    {t:"研究这面镜子的魔法构造",c:"dumbledore"},
+    {t:"忍住不照，怕自己失控",c:"snape"},
+    {t:"按规定上交教授",c:"mcgonagall"}]},
+  { q:"朋友用一句话评价你，最可能是？", opts:[
+    {t:"深不可测，捉摸不透",c:"snape"},
+    {t:"靠谱严格，说到做到",c:"mcgonagall"},
+    {t:"天马行空，脑回路清奇",c:"luna"},
+    {t:"自由洒脱，重情重义",c:"sirius"}]},
+  { q:"你最讨厌哪种人？", opts:[
+    {t:"自以为是、高高在上的人",c:"luna"},
+    {t:"胆小懦弱、背叛朋友的人",c:"sirius"},
+    {t:"仗势欺人、欺负弱小的人",c:"harry"},
+    {t:"不懂装懂、夸夸其谈的人",c:"hermione"}]},
+  { q:"魁地奇世界杯决赛之夜，你最想？", opts:[
+    {t:"披上战袍，上场夺冠",c:"harry"},
+    {t:"分析两队的战术变化",c:"hermione"},
+    {t:"和朋友们挤在一起看球",c:"ron"},
+    {t:"提前预言谁会赢",c:"dumbledore"}]},
+  { q:"老师提问到你不会的问题，你？", opts:[
+    {t:"假装会，硬着头皮瞎蒙",c:"ron"},
+    {t:"诚实说不会，但一定会去学会",c:"dumbledore"},
+    {t:"保持沉默不说话",c:"snape"},
+    {t:"说：我课后会查清楚再回答",c:"mcgonagall"}]},
+  { q:"你的房间墙上会挂什么？", opts:[
+    {t:"一柜子魔药和标本",c:"snape"},
+    {t:"课程表和奖状",c:"mcgonagall"},
+    {t:"奇奇怪怪的收集品",c:"luna"},
+    {t:"飞天摩托的海报和地图",c:"sirius"}]},
+  { q:"你相信命运吗？", opts:[
+    {t:"相信直觉的指引",c:"luna"},
+    {t:"不信，命运自己说了算",c:"sirius"},
+    {t:"相信，但不认命",c:"harry"},
+    {t:"相信，但会做足准备",c:"hermione"}]},
+  { q:"朋友心情不好，你会带他去哪？", opts:[
+    {t:"去球场打一场，发泄出来",c:"harry"},
+    {t:"去图书馆找一本好书",c:"hermione"},
+    {t:"去厨房找点好吃的",c:"ron"},
+    {t:"去天文塔看星星，聊聊心事",c:"dumbledore"}]},
+  { q:"你梦到未来会发生不好的事，你？", opts:[
+    {t:"当笑话讲给朋友听",c:"ron"},
+    {t:"默默布好应对的局",c:"dumbledore"},
+    {t:"记在心里，暗中警惕",c:"snape"},
+    {t:"提前制定应急预案",c:"mcgonagall"}]},
+  { q:"四项能力里，你最擅长哪一项？", opts:[
+    {t:"隐藏情绪",c:"snape"},
+    {t:"维持秩序",c:"mcgonagall"},
+    {t:"感知氛围",c:"luna"},
+    {t:"点燃气氛",c:"sirius"}]},
+  { q:"魔法世界里，哪里最吸引你？", opts:[
+    {t:"禁林里藏着的神奇生物",c:"luna"},
+    {t:"充满危险的黑魔法区域",c:"sirius"},
+    {t:"人声鼎沸的魁地奇球场",c:"harry"},
+    {t:"藏书万卷的禁书区",c:"hermione"}]},
+  { q:"如果你的魔杖断了，你会？", opts:[
+    {t:"找朋友借一根先顶着",c:"harry"},
+    {t:"研究魔杖的材质和原理",c:"hermione"},
+    {t:"用胶带粘起来凑合用",c:"ron"},
+    {t:"换一根更顺手的",c:"dumbledore"}]},
+  { q:"朋友偷看禁书区的书被抓了，你？", opts:[
+    {t:"陪他一起挨罚",c:"ron"},
+    {t:"帮他分析怎么解释最有利",c:"dumbledore"},
+    {t:"假装不认识，但暗中帮他",c:"snape"},
+    {t:"按校规如实报告",c:"mcgonagall"}]},
+  { q:"你的人生信条更接近哪一句？", opts:[
+    {t:"时刻保持警惕",c:"snape"},
+    {t:"纪律就是力量",c:"mcgonagall"},
+    {t:"万物都有它的道理",c:"luna"},
+    {t:"自由比什么都重要",c:"sirius"}]},
+  { q:"看到魔法生物被欺负，你？", opts:[
+    {t:"悄悄把它放走",c:"luna"},
+    {t:"直接跟欺负它的人干起来",c:"sirius"},
+    {t:"站出来挡在它前面",c:"harry"},
+    {t:"想办法给它建一个安全的家",c:"hermione"}]},
+  { q:"你会为什么而战？", opts:[
+    {t:"保护重要的人",c:"harry"},
+    {t:"捍卫知识和真相",c:"hermione"},
+    {t:"守护朋友和家人",c:"ron"},
+    {t:"为了更大的善意",c:"dumbledore"}]},
+  { q:"最后一道题：选出最像你的那句话。", opts:[
+    {t:"我其实没那么厉害，但有你们就够了",c:"ron"},
+    {t:"选择善良，而不是选择正确",c:"dumbledore"},
+    {t:"有些事，一个人扛就好",c:"snape"},
+    {t:"规矩就是规矩",c:"mcgonagall"}]}
+];
+
+/* ===== 数据：8角色深度报告 ===== */
+var DETAILS = {
+  harry: {
+    title:"格兰芬多的黄金男孩 · 勇者型",
+    slogan:"我需要的不是魔法，而是勇气。",
+    portrait:"你像哈利一样，天生带着一股不服输的劲。危险来临时你不会躲，而是第一个挡在朋友面前。你的勇气不是莽撞，而是知道会害怕，却依然选择前进。",
+    traits:["挺身而出","重情重义","行动派","正义感强","越挫越勇","带点冲动","被需要时最亮眼"],
+    good:["关键时刻靠得住，朋友都信你","面对压力反而激发战斗力","敢于做第一个站出来的人","目标明确，不轻易动摇"],
+    bad:["容易冲动，先行动后思考","习惯独自扛事，不懂求助","对不公的事零容忍，容易树敌"],
+    paths:["突发应对者：危机时刻你就是主心骨，适合救援、急救、危机公关类工作","团队带头者：你天生能聚拢人心，适合创业带团队、组织活动","实战派选手：竞技、销售、一线业务这类真刀真枪的战场最适合你"],
+    advice:["做决定前先数三秒，给理性一点出场时间","学会把担子分给同伴，你不是一个人在战斗","把勇气用在值得的地方，别为小事消耗自己"]},
+  hermione: {
+    title:"万事通小姐 · 智者型",
+    slogan:"只要书上有答案，我就不会输。",
+    portrait:"你像赫敏一样，靠实力说话。别人还在犹豫时，你已经把功课做完了十遍。你相信知识就是力量，并且真的用知识改变了很多事情的走向。",
+    traits:["聪明好学","严谨理性","目标感强","自律到可怕","资料控","坚持原则","值得信赖"],
+    good:["学什么都快，而且真的会去用","计划性强，事情交给你就稳了","逻辑清晰，吵架基本没输过","对朋友掏心掏肺的忠诚"],
+    bad:["对自己太苛刻，容易焦虑","偶尔较真到让人想躲","太相信理性，忽略直觉和情绪"],
+    paths:["研究型选手：学术、分析、数据、技术深度岗，你的主场","策划型选手：你的计划能力适合做项目管理、战略规划","专业型选手：考一个含金量高的证，走专家路线最稳"],
+    advice:["允许自己犯错，完美是过程不是终点","偶尔放下书本，听听心里的声音","你已经很厉害了，不必事事争第一"]},
+  ron: {
+    title:"韦斯莱家的开心果 · 陪伴型",
+    slogan:"我没那么厉害，但有你们就够了。",
+    portrait:"你像罗恩一样，看起来普通却藏着惊人的可靠。你不争不抢，但朋友遇到危险时，你会第一个冲上去——哪怕手里只有一根断掉的魔杖。幽默是你的盔甲，忠诚是你的底色。",
+    traits:["忠诚可靠","幽默感强","随性佛系","吃货属性","关键时刻超可靠","不争不抢","情绪稳定"],
+    good:["让身边人放松，天生氛围担当","大事上靠得住，绝不含糊","适应力强，在哪都能活得很好","重感情，朋友是一辈子的"],
+    bad:["容易自我怀疑，低估自己","有点拖延，总被逼到最后一刻","面对竞争容易主动退缩"],
+    paths:["陪伴型角色：你适合社群运营、客户关系、老师这类需要温度的工作","稳定型选手：国企、体制内这类安稳路线，你能做得长久又开心","副业玩家：正职求稳，副业找乐，双线并行反而最适合你"],
+    advice:["你比你以为的强得多，别总拿自己和别人比","重要的事设个提醒，别让拖延背锅","把幽默用在鼓励自己上，而不是自嘲"]},
+  dumbledore: {
+    title:"霍格沃茨的智者 · 谋略型",
+    slogan:"选择善良，而不是选择正确。",
+    portrait:"你像邓布利多一样，看得比别人远一步。你不急着表态，却早已看透全局。你相信人性本善，也懂得为了更大的善意做出艰难的选择。你温和，但并不软弱。",
+    traits:["深谋远虑","包容大度","洞察人心","情绪稳定","有大局观","温和坚定","信任他人"],
+    good:["看问题永远多一个维度","能稳住全场，是天然的主心骨","给人空间，善于激发别人的潜能","原则清晰，底线从不含糊"],
+    bad:["想得太多，容易把自己绕进去","习惯藏心事，别人读不懂你","过于相信别人，偶尔被辜负"],
+    paths:["掌舵者：管理、战略、咨询，你需要更大的棋盘","导师型：教育、教练、内容输出，你的智慧值得被更多人听到","谈判者：调解、外交、商务拓展，你天生会平衡各方"],
+    advice:["偶尔把计划说出来，让信任的人分担","你不需要一个人扛所有棋局","善良要有边界，智慧要留给自己一点"]},
+  snape: {
+    title:"魔药课教授 · 隐忍型",
+    slogan:"有些事，一个人扛就好。",
+    portrait:"你像斯内普一样，外壳冰冷，内里滚烫。你不轻易表达感情，但承诺过的事，用命也会完成。你习惯隐藏自己，却在最深的夜里，做最坚定的守护。",
+    traits:["外冷内热","极度专注","隐忍克制","深情重诺","洞察力强","自我保护","扮猪吃老虎"],
+    good:["认准的事，十年如一日的坚持","心思缜密，一眼看穿伪装","专业能力过硬，靠实力说话","嘴上不说，行动永远到位"],
+    bad:["习惯性封闭自己，不让人靠近","记仇且不易释怀","把苦都往心里咽，不会求救"],
+    paths:["深耕型专家：技术、手艺、研究，越深越值钱","卧底型选手：风控、审查、幕后操盘，你天生擅长看清一切","守护者：家人、朋友、重要项目，你是最可靠的幕后支柱"],
+    advice:["试着把一层壳打开，让在乎你的人进来","你的温柔值得被看见，不只藏在行动里","记仇很累，放过别人也是放过自己"]},
+  mcgonagall: {
+    title:"格兰芬多的铁面院长 · 规则型",
+    slogan:"规矩就是规矩——但规矩也可以被打破，只要理由足够好。",
+    portrait:"你像麦格教授一样，表面严厉，内心柔软。你相信规则能保护所有人，但当规则伤害了正确的事，你会毫不犹豫地打破它。你的严格，是对所有人最大的温柔。",
+    traits:["严谨自律","公正无私","责任心强","外严内慈","说到做到","值得托付","关键时刻敢破例"],
+    good:["执行力极强，交给你的事一定办妥","公平公正，大家都服你","守得住底线，也敢扛下责任","对认可的人，掏心掏肺地护"],
+    bad:["对自己和他人要求都太高","不太会撒娇和示弱","严肃惯了，容易让人有距离感"],
+    paths:["管理者：行政、法务、审计、运营，规则感是你的护城河","教育者：教书、培训、带新人，你的严格就是最好的爱","决策者：需要拍板、需要担责的位置，你天生坐得住"],
+    advice:["偶尔放松标准，包括对你自己","温柔不需要理由，试着先对自己温柔","你值得被依靠，也值得被心疼"]},
+  luna: {
+    title:"拉文克劳的月光 · 直觉型",
+    slogan:"万物都有它的道理，只是你还没听见。",
+    portrait:"你像卢娜一样，活在自己的频率里。别人觉得你奇怪，你只觉得他们吵闹。你相信直觉、相信灵性、相信那些看不见的东西——而事实证明，你常常是对的。",
+    traits:["直觉敏锐","独特不随流","灵性通透","内心强大","观察力惊人","包容度极高","活得很真实"],
+    good:["直觉准得可怕，总能看到本质","不在乎外界眼光，活得自在","对万物充满好奇和善意","越独特越有创造力"],
+    bad:["容易被当成异类，沟通成本高","过于随性，不太按常理出牌","太相信感觉，偶尔忽略现实"],
+    paths:["创作者：写作、插画、音乐、设计，你的脑洞就是生产力","洞察者：心理、占卜类、用户研究，你天生能看见别人看不见的东西","自由职业者：别被格子间困住，灵活的工作方式最适合你"],
+    advice:["你的独特是天赋，不是缺陷","重要决定前，把直觉和现实对照一下","找一个懂你的人，会很幸福"]},
+  sirius: {
+    title:"阿兹卡班的逃犯 · 自由型",
+    slogan:"自由比什么都重要——但为了你，我可以放弃。",
+    portrait:"你像小天狼星一样，生来不羁。你讨厌束缚，热爱冒险，活得张扬又热烈。但你并非只爱自己——为了在乎的人，你愿意付出一切，哪怕失去自由。",
+    traits:["自由不羁","重情重义","敢想敢干","魅力四射","叛逆外壳","热烈真诚","为爱赴汤蹈火"],
+    good:["行动力爆棚，说走就走","天生的焦点，感染力强","对朋友两肋插刀","抗压能力极强，绝境也能笑出来"],
+    bad:["太冲动，经常先干再说","讨厌规则，容易吃亏","情绪来得快去得也快，不稳定"],
+    paths:["创业玩家：开拓市场、新业务，你需要没有天花板的舞台","先锋选手：潮流、新媒体、自由职业，你的个性就是招牌","守护者：对家庭和朋友，你会是那个挡刀的人"],
+    advice:["自由不是想做什么就做什么，而是能对自己负责","把冲动留给冒险，把计划留给重要的事","你的热爱很珍贵，别让它烧得太快"]}
+};
+
+/* ===== 角色基础信息 ===== */
+var CHARACTERS = {
+  harry:      { name:"哈利·波特" },
+  hermione:   { name:"赫敏·格兰杰" },
+  ron:        { name:"罗恩·韦斯莱" },
+  dumbledore: { name:"邓布利多" },
+  snape:      { name:"斯内普" },
+  mcgonagall: { name:"麦格教授" },
+  luna:       { name:"卢娜·洛夫古德" },
+  sirius:     { name:"小天狼星" }
+};
+
+/* ===== 状态 ===== */
+var state = { idx:0, scores:{} };
+
+/* ===== 计分与渲染 ===== */
+function pick(roleKey){
+  state.scores[roleKey] = (state.scores[roleKey]||0) + 1;
+  state.idx++;
+  if(state.idx >= QUESTIONS.length){ showResult(); location.hash = "#result"; }
+  else { renderQuiz(); }
+}
+
+function renderQuiz(){
+  var q = QUESTIONS[state.idx];
+  document.getElementById("quizCount").textContent = (state.idx+1) + " / " + QUESTIONS.length;
+  document.getElementById("progressFill").style.width = (state.idx / QUESTIONS.length * 100) + "%";
+  var letters = ["A","B","C","D"];
+  var html = '<div class="q-tag"><span class="glyph">✦</span>第 ' + (state.idx+1) + ' 道魔法谜题</div>';
+  html += '<div class="q-text">' + q.q + '</div>';
+  html += '<div class="opts">';
+  for(var i=0;i<q.opts.length;i++){
+    html += '<button class="opt" onclick="pick(\'' + q.opts[i].c + '\')"><span class="opt-letter">' + letters[i] + '</span>' + q.opts[i].t + '</button>';
+  }
+  html += '</div>';
+  document.getElementById("quizCard").innerHTML = html;
+}
+
+function topRoles(){
+  var arr = [];
+  for(var k in state.scores){ arr.push({k:k, v:state.scores[k]}); }
+  arr.sort(function(a,b){ return b.v - a.v; });
+  return arr;
+}
+
+function showResult(){
+  var arr = topRoles();
+  var first = arr[0], second = arr[1];
+  var both = (second && second.v === first.v) ? [first.k, second.k] : [first.k];
+  var html = '<div class="result-head"><div class="res-kicker">Your Magic Persona</div><h2>你的魔法人格是</h2></div>';
+  for(var i=0;i<both.length;i++){
+    html += renderCharCard(both[i]);
+  }
+  if(both.length === 2){
+    html += '<div class="combo-tip">双人格共鸣：你是 <b>' + CHARACTERS[both[0]].name + '</b> 与 <b>' + CHARACTERS[both[1]].name + '</b> 的结合体——两者的力量在你体内并存。</div>';
+  }
+  html += '<div class="actions"><button class="btn-magic" onclick="restart()">再测一次</button><button class="btn-ghost" onclick="location.hash=\'#cover\'">返回首页</button></div>';
+  html += '<p class="result-legal muted">非官方粉丝向 · 结果仅供娱乐 · 角色图片来源于网络</p>';
+  document.getElementById("resultBox").innerHTML = html;
+}
+
+function renderCharCard(key){
+  var c = CHARACTERS[key], d = DETAILS[key];
+  if(!d){ d = { title:"", slogan:"", portrait:"", traits:[], good:[], bad:[], paths:[], advice:[] }; }
+  var html = '<div class="char-card">';
+  var srcImg = document.querySelector('#charImgs img[data-key="' + key + '"]');
+  html += '<div class="gold-frame">' + (srcImg ? srcImg.outerHTML : '') + '</div>';
+  html += '<div class="char-name">' + c.name + '</div>';
+  html += '<div class="char-title">' + d.title + '</div>';
+  html += '<div class="char-slogan">' + d.slogan + '</div>';
+  html += '</div>';
+
+  html += '<div class="sec"><h3>人格画像</h3><p>' + d.portrait + '</p></div>';
+
+  html += '<div class="sec"><h3>核心特质</h3><div class="tag-wall">';
+  for(var i=0;i<d.traits.length;i++){ html += '<span class="tag">' + d.traits[i] + '</span>'; }
+  html += '</div></div>';
+
+  html += '<div class="sec"><h3>天生优势 × 易踩的坑</h3><div class="duel">';
+  html += '<div class="box good"><h4>✦ 天生优势</h4><ul>';
+  for(var g=0;g<d.good.length;g++){ html += '<li>' + d.good[g] + '</li>'; }
+  html += '</ul></div>';
+  html += '<div class="box bad"><h4>✧ 易踩的坑</h4><ul>';
+  for(var b=0;b<d.bad.length;b++){ html += '<li>' + d.bad[b] + '</li>'; }
+  html += '</ul></div></div></div>';
+
+  html += '<div class="sec"><h3>你的魔法道路</h3><div class="path-list">';
+  for(var p=0;p<d.paths.length;p++){ html += '<div class="path-item"><b>' + d.paths[p][0] + '</b><p>' + d.paths[p][1] + '</p></div>'; }
+  html += '</div></div>';
+
+  html += '<div class="sec"><h3>成长建议</h3><div class="advice-list">';
+  for(var a=0;a<d.advice.length;a++){ html += '<div class="advice-item"><span class="num">' + (a+1) + '</span><span>' + d.advice[a] + '</span></div>'; }
+  html += '</div></div>';
+  return html;
+}
+
+function restart(){
+  state.idx = 0; state.scores = {};
+  document.getElementById("quizCount").textContent = "1 / " + QUESTIONS.length;
+  document.getElementById("progressFill").style.width = "0%";
+  location.hash = "#quiz";
+  renderQuiz();
+}
+
+/* ===== 路由 ===== */
+function route(){
+  var h = location.hash || "#cover";
+  document.getElementById("cover").classList.toggle("active", h === "#cover");
+  document.getElementById("quiz").classList.toggle("active", h === "#quiz");
+  document.getElementById("result").classList.toggle("active", h === "#result");
+  if(h === "#quiz"){ renderQuiz(); }
+  if(h === "#result"){ showResult(); }
+}
+window.addEventListener("hashchange", route);
+route();
+
+/* ===== 星空生成 ===== */
+(function(){
+  var s = document.getElementById("stars");
+  var html = "";
+  for(var i=0;i<46;i++){
+    var x = Math.random()*100, y = Math.random()*100, d = (Math.random()*3+1.5).toFixed(1), t = (Math.random()*4).toFixed(1), r = (Math.random()*1.8+1).toFixed(1);
+    html += '<i style="left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) + '%;width:' + r + 'px;height:' + r + 'px;animation-delay:' + t + 's;animation-duration:' + d + 's"></i>';
+  }
+  s.innerHTML = html;
+})();
+</script>
+</body>
+</html>
